@@ -20,7 +20,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     fetch('/api/me', { headers, credentials: 'include' })
-      .then((r) => (r.ok ? r.json() : null))
+      .then((r) => {
+        if (r.ok) return r.json()
+        // Clear stale dev email so the login form reappears cleanly.
+        if (import.meta.env.DEV) localStorage.removeItem(DEV_KEY)
+        return null
+      })
       .then(setUser)
       .finally(() => setLoading(false))
   }, [])

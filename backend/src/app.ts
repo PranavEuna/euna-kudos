@@ -5,6 +5,7 @@ import { isAdmin } from './lib/admin.js'
 import { usersRoute } from './routes/users.js'
 import { kudosRoute } from './routes/kudos.js'
 import { commentsRoute } from './routes/comments.js'
+import { statsRoute } from './routes/stats.js'
 
 export const app = new Hono()
 
@@ -30,5 +31,6 @@ api.get('/me', (c) => {
 api.route('/users', usersRoute)
 api.route('/kudos', kudosRoute)
 api.route('/kudos/:kudosId/comments', commentsRoute)
+api.route('/stats', statsRoute)
 
 app.route('/api', api)

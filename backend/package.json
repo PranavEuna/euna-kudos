@@ -11,7 +11,8 @@
     "db:psql": "node scripts/db-psql.mjs",
     "db:migrate": "drizzle-kit migrate",
     "db:generate": "drizzle-kit generate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx src/seed.ts"
   },
   "dependencies": {
     "@hono/swagger-ui": "^0.6.1",

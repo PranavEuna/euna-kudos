@@ -12,6 +12,12 @@ declare module 'hono' {
   }
 }
 
+export const ALLOWED_EMAIL_DOMAIN = 'eunasolutions.com'
+
+function isAllowedEmail(email: string): boolean {
+  return email.endsWith(`@${ALLOWED_EMAIL_DOMAIN}`)
+}
+
 const JWKS = process.env.ACCESS_TEAM_DOMAIN
   ? createRemoteJWKSet(
       new URL(`https://${process.env.ACCESS_TEAM_DOMAIN}/cdn-cgi/access/certs`)
@@ -37,6 +43,12 @@ export const requireAuth = createMiddleware(async (c, next) => {
       return c.json({ error: 'unauthenticated' }, 401)
     }
     email = devEmail.toLowerCase().trim()
+    if (!isAllowedEmail(email)) {
+      return c.json(
+        { error: 'forbidden_domain', message: `Sign-in is restricted to @${ALLOWED_EMAIL_DOMAIN} emails.` },
+        403
+      )
+    }
     name = email.split('@')[0]
     // Local dev shortcut: any email containing "admin" gets the app-admins group.
     // Matches the prod access-model: admin status is derived from JWT groups.
@@ -58,6 +70,12 @@ export const requireAuth = createMiddleware(async (c, next) => {
         issuer: `https://${process.env.ACCESS_TEAM_DOMAIN}`,
       })
       email = (payload.email as string).toLowerCase().trim()
+      if (!isAllowedEmail(email)) {
+        return c.json(
+          { error: 'forbidden_domain', message: `Sign-in is restricted to @${ALLOWED_EMAIL_DOMAIN} emails.` },
+          403
+        )
+      }
       name = ((payload.name as string) ?? email.split('@')[0])
       groups = ((payload.custom as any)?.groups ?? []) as string[]
     } catch {

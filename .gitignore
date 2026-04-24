@@ -10,3 +10,6 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Claude Code: keep the shared skills under .claude/commands/ but ignore per-dev session state.
+.claude/settings.local.json

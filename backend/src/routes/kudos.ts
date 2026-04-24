@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
 import { z } from 'zod'
-import { desc, eq } from 'drizzle-orm'
+import { desc, eq, sql } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/pg-core'
 import { db } from '../db/index.js'
-import { kudos, users, kudosCategories } from '../db/schema.js'
+import { kudos, users, comments, kudosCategories } from '../db/schema.js'
 import { isAdmin } from '../lib/admin.js'
 
 export const kudosRoute = new Hono()
@@ -20,7 +20,7 @@ const featureSchema = z.object({
 
 const categoryQuery = z.enum(kudosCategories).optional()
 
-// Reusable join: kudos + sender + recipient
+// Reusable join: kudos + sender + recipient + comment count
 function kudosSelect() {
   const fromUser = alias(users, 'from_user')
   const toUser = alias(users, 'to_user')
@@ -39,6 +39,7 @@ function kudosSelect() {
       toUserId: kudos.toUserId,
       toName: toUser.name,
       toEmail: toUser.email,
+      commentCount: sql<number>`(select count(*)::int from ${comments} where ${comments.kudosId} = ${kudos.id})`.as('comment_count'),
     },
   }
 }

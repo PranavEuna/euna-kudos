@@ -1,3 +1,5 @@
+/* Inter — Euna Solutions uses a similar humanist sans; Inter is the closest open-source match. */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 
 @theme inline {
@@ -19,6 +21,16 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  --color-euna-purple: var(--euna-purple);
+  --color-euna-purple-dark: var(--euna-purple-dark);
+  --color-euna-navy: var(--euna-navy);
+  --color-euna-indigo: var(--euna-indigo);
+  --color-euna-orange: var(--euna-orange);
+
+  --font-sans: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -26,53 +38,160 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --radius: 0.625rem;
+  /* Euna Solutions brand palette — sourced from eunasolutions.com production CSS */
+  --euna-purple: #6145f7;
+  --euna-purple-dark: #4f39d1;
+  --euna-navy: #0d1f8f;
+  --euna-indigo: #281978;
+  --euna-orange: #e7690d;
+
+  /* Semantic tokens */
+  --background: #ffffff;
+  --foreground: #1f2124;
+  --card: #ffffff;
+  --card-foreground: #1f2124;
+  --popover: #ffffff;
+  --popover-foreground: #1f2124;
+
+  /* Primary = Euna Purple */
+  --primary: #6145f7;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f3f5f8;
+  --secondary-foreground: #1f2124;
+
+  --muted: #f3f5f8;
+  --muted-foreground: #69727d;
+
+  --accent: #eef0ff;
+  --accent-foreground: #281978;
+
+  --destructive: #d9534f;
+
+  --border: #e2e8ef;
+  --input: #e2e8ef;
+  --ring: #6145f7;
+
+  --radius: 0.75rem;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  /* Dark mode tuned so Euna purple stays vivid */
+  --background: #0b0c17;
+  --foreground: #eef0f6;
+  --card: #12142a;
+  --card-foreground: #eef0f6;
+  --popover: #12142a;
+  --popover-foreground: #eef0f6;
+
+  --primary: #8472ff;
+  --primary-foreground: #0b0c17;
+
+  --secondary: #1a1d3a;
+  --secondary-foreground: #eef0f6;
+
+  --muted: #1a1d3a;
+  --muted-foreground: #a0a8bd;
+
+  --accent: #221d54;
+  --accent-foreground: #c7bfff;
+
+  --destructive: #f47174;
+
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #8472ff;
 }
 
 * {
   border-color: var(--border);
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Selection color = Euna purple */
+::selection {
+  background-color: rgba(97, 69, 247, 0.2);
+  color: inherit;
+}
+
+/* Subtle animated gradient used in hero headers */
+@keyframes euna-gradient-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.euna-hero-gradient {
+  background: linear-gradient(
+    120deg,
+    var(--euna-indigo) 0%,
+    var(--euna-purple) 45%,
+    var(--euna-navy) 100%
+  );
+  background-size: 180% 180%;
+  animation: euna-gradient-drift 14s ease infinite;
+}
+
+/* Featured kudos get a warm amber glow */
+.euna-featured-glow {
+  box-shadow:
+    0 0 0 1px rgba(231, 105, 13, 0.35),
+    0 6px 24px -8px rgba(231, 105, 13, 0.35);
+}
+
+/* Soft card lift on hover */
+@utility card-hover {
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px -18px rgba(15, 23, 42, 0.25);
+  border-color: color-mix(in oklch, var(--primary) 30%, var(--border));
+}
+
+/* Pulse used by the skeleton loaders */
+@keyframes euna-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+.euna-skeleton {
+  animation: euna-skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+/* Scrollbar polish on WebKit */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklch, var(--muted-foreground) 30%, transparent);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklch, var(--muted-foreground) 45%, transparent);
 }

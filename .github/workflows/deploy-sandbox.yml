@@ -1,0 +1,28 @@
+name: Deploy — Sandbox
+
+# Sandbox deploys are scoped to the `dev` branch by the IaC OIDC trust policy
+# (modules/app_web_v1/main.tf computes
+#   github_oidc_subject = "repo:PranavEuna/euna-kudos:ref:refs/heads/dev"
+# for environment=sandbox). Pushing to any other branch will get AccessDenied
+# from sts:AssumeRoleWithWebIdentity. Promote main → dev to trigger a deploy.
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "backend/**"
+      - ".github/workflows/_deploy-backend.yml"
+      - ".github/workflows/deploy-sandbox.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/_deploy-backend.yml
+    with:
+      environment: sandbox
+      app_name: kudos-test
+      aws_region: us-east-2
+      run_migrations: true
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}

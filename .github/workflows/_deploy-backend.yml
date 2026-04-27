@@ -1,0 +1,121 @@
+name: Deploy Backend Lambda
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+        description: "GitHub environment name (sandbox | production)"
+      app_name:
+        required: true
+        type: string
+        description: "App name prefix — Lambda functions must be named <app_name>-<environment>-lambda and <app_name>-<environment>-migrator-lambda"
+      aws_region:
+        required: false
+        type: string
+        default: us-east-1
+      run_migrations:
+        required: false
+        type: boolean
+        default: true
+        description: "Invoke the migrator Lambda after deploying"
+    secrets:
+      AWS_ROLE_ARN:
+        required: true
+        description: "IAM role ARN to assume via OIDC"
+
+jobs:
+  deploy:
+    name: Deploy → ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    permissions:
+      id-token: write  # required for OIDC token exchange
+      contents: read
+
+    env:
+      LAMBDA_NAME: ${{ inputs.app_name }}-${{ inputs.environment }}-lambda
+      MIGRATOR_NAME: ${{ inputs.app_name }}-${{ inputs.environment }}-migrator-lambda
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Build Lambda bundle
+        working-directory: backend
+        run: npm run build
+
+      - name: Package Lambda ZIP
+        # Flatten dist/ so handler is "lambda.handler" (not "dist/lambda.handler")
+        run: |
+          cd backend/dist
+          zip -r ../../lambda.zip .
+          echo "ZIP size: $(du -sh ../../lambda.zip | cut -f1)"
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Update Lambda function code
+        run: |
+          aws lambda update-function-code \
+            --function-name "$LAMBDA_NAME" \
+            --zip-file fileb://lambda.zip \
+            --region "${{ inputs.aws_region }}"
+
+      - name: Wait for Lambda update to complete
+        run: |
+          aws lambda wait function-updated \
+            --function-name "$LAMBDA_NAME" \
+            --region "${{ inputs.aws_region }}"
+
+      - name: Publish Lambda version
+        id: publish
+        run: |
+          VERSION=$(aws lambda publish-version \
+            --function-name "$LAMBDA_NAME" \
+            --region "${{ inputs.aws_region }}" \
+            --query Version \
+            --output text)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Published version: $VERSION"
+
+      - name: Run migrations via migrator Lambda
+        if: inputs.run_migrations
+        run: |
+          RESPONSE=$(aws lambda invoke \
+            --function-name "$MIGRATOR_NAME" \
+            --region "${{ inputs.aws_region }}" \
+            --cli-binary-format raw-in-base64-out \
+            --payload '{}' \
+            --log-type Tail \
+            response.json)
+
+          # Print tail logs (base64-encoded in the response metadata)
+          echo "$RESPONSE" | jq -r '.LogResult // empty' | base64 --decode || true
+
+          # Surface the Lambda response payload
+          echo "--- Migration response ---"
+          cat response.json
+
+          # Fail the step if the function errored
+          FUNC_ERROR=$(echo "$RESPONSE" | jq -r '.FunctionError // empty')
+          if [ -n "$FUNC_ERROR" ]; then
+            echo "Migrator Lambda returned FunctionError: $FUNC_ERROR"
+            exit 1
+          fi
